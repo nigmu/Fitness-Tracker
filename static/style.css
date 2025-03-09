@@ -1,0 +1,200 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.tabs {
+    margin-bottom: 20px;
+}
+
+.tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-bottom: none;
+}
+
+.tab.active {
+    background-color: white;
+    font-weight: bold;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+td {
+    cursor: pointer;
+}
+
+#controls {
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 8px 16px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 20px;
+    width: 300px;
+}
+
+.close {
+    float: right;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+/* Add these new styles */
+.control-group {
+    margin-bottom: 10px;
+}
+
+#new-column {
+    padding: 8px;
+    margin-right: 10px;
+    width: 200px;
+}
+
+td {
+    min-width: 100px;
+    height: 30px;
+}
+
+th[onclick] {
+    cursor: pointer;
+    background-color: #ffebee;
+}
+
+th[onclick]:hover {
+    background-color: #ffcdd2;
+}
+
+#edit-options .modal-content {
+    width: 300px;
+    padding: 20px;
+}
+
+#selected-cell {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* Add these new styles */
+input {
+    width: 100%;
+    height: 100%;
+    border: 2px solid #2196F3;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+td:not(:first-child) {
+    cursor: cell;
+}
+
+td[data-column]:hover {
+    background-color: #e3f2fd;
+}
+
+th:not(:first-child):not(:nth-child(2)):hover {
+    background-color: #ffebee;
+}
+
+.control-group {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+#new-column {
+    flex-grow: 1;
+    max-width: 300px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    width: 300px;
+    border-radius: 5px;
+}
+
+.modal-buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.modal-buttons button {
+    padding: 8px 16px;
+}
+
+#modal-message {
+    margin: 0 0 15px;
+    font-size: 16px;
+}
+
+.close {
+    float: right;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+th[onclick] {
+    cursor: pointer;
+    background-color: #ffebee;
+}
+
+th[onclick]:hover {
+    background-color: #ffcdd2;
+}
+
+td[data-column]:hover {
+    background-color: #e3f2fd;
+}
