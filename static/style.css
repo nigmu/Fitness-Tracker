@@ -198,3 +198,84 @@ th[onclick]:hover {
 td[data-column]:hover {
     background-color: #e3f2fd;
 }
+
+/* Add these new styles */
+#statistics-section {
+    padding: 20px;
+}
+
+#charts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
+    gap: 20px;
+}
+
+canvas {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 5px;
+    border: 2px solid #4CAF50;
+    border-radius: 4px;
+}
+
+/* Add these new styles */
+.main-tabs {
+    margin-bottom: 20px;
+}
+
+.main-tab {
+    padding: 10px 30px;
+    font-size: 18px;
+}
+
+.sub-tabs {
+    margin: 15px 0;
+}
+
+.sub-tab {
+    padding: 8px 20px;
+    margin-right: 10px;
+}
+
+.chart-container {
+    margin: 20px 0;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#charts-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 5px;
+    border: 2px solid #4CAF50;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}

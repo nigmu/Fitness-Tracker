@@ -2,26 +2,63 @@
 <html>
 <head>
     <title>Fitness Tracker</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .main-tabs { margin-bottom: 20px; }
+        .main-tab { padding: 10px 30px; font-size: 18px; cursor: pointer; }
+        .sub-tabs { margin: 15px 0; }
+        .sub-tab { padding: 8px 20px; margin-right: 10px; cursor: pointer; }
+        .active { background-color: #e0e0e0; }
+        .section { display: none; }
+        .section.active { display: block; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        input[type="number"] { width: 100%; padding: 5px; border: 2px solid #4CAF50; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: white; margin: 15% auto; padding: 20px; width: 300px; }
+        .chart-container { margin: 20px 0; padding: 20px; background: white; }
+    </style>
 </head>
 <body>
     <div class="container">
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('food')">Food</button>
-            <button class="tab" onclick="switchTab('exercise')">Exercise</button>
-            <button class="tab" onclick="switchTab('body')">Body</button>
+        <div class="main-tabs">
+            <button class="main-tab active" onclick="switchMainTab('data')">Data</button>
+            <button class="main-tab" onclick="switchMainTab('statistics')">Statistics</button>
         </div>
-        
-        <div id="controls">
-            <div class="control-group">
-                <input type="text" id="new-column" placeholder="New column name">
-                <button onclick="addColumn()">Add Column</button>
+
+        <!-- Data Section -->
+        <div id="data-section" class="section active">
+            <div class="sub-tabs">
+                <button class="sub-tab active" onclick="switchSubTab('food')">Food</button>
+                <button class="sub-tab" onclick="switchSubTab('exercise')">Exercise</button>
+                <button class="sub-tab" onclick="switchSubTab('body')">Body</button>
             </div>
-            <button onclick="addRow()">Add New Row</button>
+            
+            <div id="data-controls">
+                <div class="control-group">
+                    <input type="text" id="new-column" placeholder="New column name">
+                    <button onclick="addColumn()">Add Column</button>
+                </div>
+                <button onclick="addRow()">Add New Row</button>
+            </div>
+            
+            <div id="table-container"></div>
         </div>
 
-        <div id="table-container"></div>
+        <!-- Statistics Section -->
+        <div id="statistics-section" class="section">
+            <div class="sub-tabs">
+                <button class="sub-tab active" onclick="switchStatTab('food')">Food</button>
+                <button class="sub-tab" onclick="switchStatTab('exercise')">Exercise</button>
+                <button class="sub-tab" onclick="switchStatTab('body')">Body</button>
+            </div>
+            <div id="charts-container"></div>
+        </div>
 
+        <!-- Confirmation Modal -->
         <div id="confirmation-modal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeModal()">&times;</span>
@@ -35,15 +72,35 @@
     </div>
 
     <script>
+        let currentMainTab = 'data';
         let currentTable = 'food';
+        let currentStatTable = 'food';
         let activeInput = null;
         let pendingAction = null;
 
-        function switchTab(table) {
+        function switchMainTab(tab) {
+            currentMainTab = tab;
+            document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelector(`.main-tab[onclick="switchMainTab('${tab}')"]`).classList.add('active');
+            document.querySelector(`#${tab}-section`).classList.add('active');
+            
+            if (tab === 'data') loadTable();
+            else loadStatistics();
+        }
+
+        function switchSubTab(table) {
             currentTable = table;
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelector(`button[onclick="switchTab('${table}')"]`).classList.add('active');
+            document.querySelectorAll('#data-section .sub-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`#data-section .sub-tab[onclick="switchSubTab('${table}')"]`).classList.add('active');
             loadTable();
+        }
+
+        function switchStatTab(table) {
+            currentStatTable = table;
+            document.querySelectorAll('#statistics-section .sub-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`#statistics-section .sub-tab[onclick="switchStatTab('${table}')"]`).classList.add('active');
+            loadStatistics();
         }
 
         async function loadTable() {
@@ -63,9 +120,8 @@
 
             const table = document.createElement('table');
             const headerRow = document.createElement('tr');
-            
-            // Headers (ID first, Date second, then others)
             const columns = ['id', 'date', ...Object.keys(data[0]).filter(k => !['id', 'date'].includes(k))];
+            
             columns.forEach(key => {
                 const th = document.createElement('th');
                 th.textContent = key;
@@ -76,7 +132,6 @@
             });
             table.appendChild(headerRow);
 
-            // Rows (newest first)
             data.reverse().forEach(row => {
                 const tr = document.createElement('tr');
                 columns.forEach(key => {
@@ -92,7 +147,6 @@
                 });
                 table.appendChild(tr);
             });
-
             container.appendChild(table);
         }
 
@@ -101,17 +155,26 @@
             
             const initialValue = cell.textContent;
             const input = document.createElement('input');
+            input.type = 'number';
+            input.step = 'any';
             input.value = initialValue;
             
+            input.addEventListener('input', (e) => {
+                if (isNaN(e.target.value)) {
+                    e.target.value = '';
+                }
+            });
+
             cell.textContent = '';
             cell.appendChild(input);
             input.focus();
             activeInput = input;
 
             const save = async () => {
-                await saveCell(cell, input.value);
+                const value = input.value.trim();
+                await saveCell(cell, value);
                 activeInput = null;
-                cell.textContent = input.value.trim();
+                cell.textContent = value !== '' ? parseFloat(value) : '';
             };
 
             input.addEventListener('keydown', async (e) => {
@@ -133,45 +196,9 @@
                 body: JSON.stringify({
                     row_id: rowId,
                     column: column,
-                    value: value.trim()
+                    value: value
                 })
             });
-        }
-
-        function showDeleteRowModal(rowId) {
-            document.getElementById('modal-message').textContent = `Delete row #${rowId}?`;
-            pendingAction = async () => {
-                await fetch(`/api/${currentTable}/delete-row`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ row_id: rowId })
-                });
-                loadTable();
-            };
-            document.getElementById('confirmation-modal').style.display = 'block';
-        }
-
-        function showDeleteColumnModal(column) {
-            document.getElementById('modal-message').textContent = `Delete column "${column}"?`;
-            pendingAction = async () => {
-                await fetch(`/api/${currentTable}/delete-column`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: column })
-                });
-                loadTable();
-            };
-            document.getElementById('confirmation-modal').style.display = 'block';
-        }
-
-        function confirmAction() {
-            if (pendingAction) pendingAction();
-            closeModal();
-        }
-
-        function closeModal() {
-            document.getElementById('confirmation-modal').style.display = 'none';
-            pendingAction = null;
         }
 
         async function addRow() {
@@ -192,8 +219,93 @@
             }
         }
 
-        // Initial load
-        loadTable();
+        function showDeleteColumnModal(column) {
+            document.getElementById('modal-message').textContent = `Delete column "${column}"?`;
+            pendingAction = async () => {
+                await fetch(`/api/${currentTable}/delete-column`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: column })
+                });
+                loadTable();
+            };
+            document.getElementById('confirmation-modal').style.display = 'block';
+        }
+
+        function showDeleteRowModal(rowId) {
+            document.getElementById('modal-message').textContent = `Delete row #${rowId}?`;
+            pendingAction = async () => {
+                await fetch(`/api/${currentTable}/delete-row`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ row_id: rowId })
+                });
+                loadTable();
+            };
+            document.getElementById('confirmation-modal').style.display = 'block';
+        }
+
+        function confirmAction() {
+            if (pendingAction) pendingAction();
+            closeModal();
+        }
+
+        function closeModal() {
+            document.getElementById('confirmation-modal').style.display = 'none';
+            pendingAction = null;
+        }
+
+        async function loadStatistics() {
+            const response = await fetch(`/api/${currentStatTable}/data`);
+            const { data } = await response.json();
+            renderCharts(data);
+        }
+
+        function renderCharts(tableData) {
+            const container = document.getElementById('charts-container');
+            container.innerHTML = '';
+            if (!tableData.length) return;
+
+            const numericColumns = Object.keys(tableData[0]).filter(key => 
+                !['id', 'date'].includes(key) && 
+                tableData.some(row => !isNaN(row[key]))
+            );
+
+            numericColumns.forEach(column => {
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'chart-container';
+                const canvas = document.createElement('canvas');
+                chartContainer.appendChild(canvas);
+                container.appendChild(chartContainer);
+
+                const sortedData = tableData.sort((a, b) => new Date(a.date) - new Date(b.date));
+                const dates = sortedData.map(row => row.date);
+                const values = sortedData.map(row => parseFloat(row[column]) || 0);
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: column,
+                            data: values,
+                            borderColor: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: { type: 'time', time: { unit: 'day' } },
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            });
+        }
+
+        // Initialize
+        switchMainTab('data');
     </script>
 </body>
 </html>

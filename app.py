@@ -36,7 +36,7 @@ def get_table_data(table):
 def add_row(table):
     data = read_csv_data(table)
     new_id = len(data) + 1 if data else 1
-    new_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    new_date = datetime.now().strftime('%Y-%m-%d')
     new_row = {'id': str(new_id), 'date': new_date}
     
     if data:
@@ -106,6 +106,15 @@ def update_cell(table):
                 return jsonify(success=True)
     
     return jsonify(success=False, error="Cell not found")
+
+# Add new endpoint for statistics data
+@app.route('/api/statistics')
+def get_statistics():
+    stats = {}
+    for table in ['food', 'exercise', 'body']:
+        data = read_csv_data(table)
+        stats[table] = data
+    return jsonify(stats)
 
 if __name__ == '__main__':
     os.makedirs(app.config['DATA_FOLDER'], exist_ok=True)
