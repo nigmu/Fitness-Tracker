@@ -4,10 +4,14 @@ import os
 from datetime import datetime
 
 app = Flask(__name__)
-app.config['DATA_FOLDER'] = 'data'
+# app.config['DATA_FOLDER'] = 'data'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app.config['DATA_FOLDER'] = os.path.join(BASE_DIR, 'data')
+
 
 def get_csv_path(table):
     return os.path.join(app.config['DATA_FOLDER'], f'{table}.csv')
+
 
 # def read_csv_data(table):
 #     path = get_csv_path(table)
@@ -35,13 +39,26 @@ def read_csv_data(table):
         return data
 
 
+# def write_csv_data(table, data):
+#     path = get_csv_path(table)
+#     fieldnames = ['id', 'date'] + [col for col in data[0].keys() if col not in ('id', 'date')] if data else ['id', 'date']
+#     with open(path, 'w', newline='') as f:
+#         writer = csv.DictWriter(f, fieldnames=fieldnames)
+#         writer.writeheader()
+#         writer.writerows(data)
+
 def write_csv_data(table, data):
     path = get_csv_path(table)
+
+    # Ensure 'data' directory exists before writing
+    os.makedirs(app.config['DATA_FOLDER'], exist_ok=True)
+
     fieldnames = ['id', 'date'] + [col for col in data[0].keys() if col not in ('id', 'date')] if data else ['id', 'date']
     with open(path, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(data)
+
 
 @app.route('/')
 def index():
