@@ -9,11 +9,31 @@ app.config['DATA_FOLDER'] = 'data'
 def get_csv_path(table):
     return os.path.join(app.config['DATA_FOLDER'], f'{table}.csv')
 
+# def read_csv_data(table):
+#     path = get_csv_path(table)
+#     with open(path, 'r') as f:
+#         reader = csv.DictReader(f)
+#         return list(reader)
+
 def read_csv_data(table):
     path = get_csv_path(table)
+    if not os.path.exists(path):
+        return []
+    
     with open(path, 'r') as f:
         reader = csv.DictReader(f)
-        return list(reader)
+        data = list(reader)
+
+        # Convert numeric values where applicable
+        for row in data:
+            for key in row.keys():
+                if key not in ['id', 'date']:
+                    try:
+                        row[key] = float(row[key]) if row[key] else None  # Convert to float if possible
+                    except ValueError:
+                        pass
+        return data
+
 
 def write_csv_data(table, data):
     path = get_csv_path(table)
@@ -25,7 +45,16 @@ def write_csv_data(table, data):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('data.html', active_tab='data')
+
+@app.route('/data')
+def data_page():
+    return render_template('data.html', active_tab='data')
+
+@app.route('/statistics')
+def statistics_page():
+    return render_template('statistics.html', active_tab='statistics')
+
 
 @app.route('/api/<table>/data', methods=['GET'])
 def get_table_data(table):
@@ -119,3 +148,5 @@ def get_statistics():
 if __name__ == '__main__':
     os.makedirs(app.config['DATA_FOLDER'], exist_ok=True)
     app.run(debug=True)
+
+    

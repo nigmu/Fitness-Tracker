@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Statistics Section -->
+<div id="statistics-section" class="section active">
+    <div class="sub-tabs">
+        <button class="sub-tab" onclick="switchStatTab('body')">Body</button>
+        <button class="sub-tab" onclick="switchStatTab('exercise')">Exercise</button>
+        <button class="sub-tab active" onclick="switchStatTab('food')">Food</button>
+    </div>
+    <div id="charts-container"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Include Chart.js and Moment.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+
+<script>
+    let currentStatTable = 'food';
+
+    function switchStatTab(table) {
+        currentStatTable = table;
+        document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.sub-tab[onclick="switchStatTab('${table}')"]`).classList.add('active');
+        loadStatistics();
+    }
+
+    async function loadStatistics() {
+        const response = await fetch(`/api/${currentStatTable}/data`);
+        const { data } = await response.json();
+        renderCharts(data);
+    }
+
+    function renderCharts(tableData) {
+        const container = document.getElementById('charts-container');
+        container.innerHTML = '';
+        if (!tableData.length) return;
+
+        const numericColumns = Object.keys(tableData[0]).filter(key => 
+            !['id', 'date'].includes(key) && 
+            tableData.some(row => !isNaN(row[key]))
+        );
+
+        numericColumns.forEach(column => {
+            const chartContainer = document.createElement('div');
+            chartContainer.className = 'chart-container';
+            const canvas = document.createElement('canvas');
+            chartContainer.appendChild(canvas);
+            container.appendChild(chartContainer);
+
+            // Sort data by date
+            const sortedData = tableData.sort((a, b) => new Date(a.date) - new Date(b.date));
+            const dates = sortedData.map(row => moment(row.date, "YYYY-MM-DD").format("YYYY-MM-DD"));
+            const values = sortedData.map(row => parseFloat(row[column]) || 0);
+
+            new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: column,
+                        data: values,
+                        borderColor: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+                        fill: false,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: { unit: 'day' },
+                            
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: column }
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    // Initialize
+    switchStatTab('food');
+</script>
+
+<style>
+    .chart-container {
+        width: 100%;
+        max-width: 800px;
+        margin: 20px auto;
+    }
+</style>
+{% endblock %}

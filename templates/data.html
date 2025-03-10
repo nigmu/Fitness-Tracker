@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Data Section -->
+<div id="data-section" class="section active">
+    <div class="sub-tabs">
+        <button class="sub-tab" onclick="switchSubTab('body')">Body</button>
+        <button class="sub-tab" onclick="switchSubTab('exercise')">Exercise</button>
+        <button class="sub-tab active" onclick="switchSubTab('food')">Food</button>
+    </div>
+    
+    <div id="data-controls">
+        <div class="control-group">
+            <input type="text" id="new-column" placeholder="New column name">
+            <button onclick="addColumn()">Add Column</button>
+        </div>
+        <button onclick="addRow()">Add New Row</button>
+    </div>
+    
+    <div id="table-container"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentTable = 'body';
+
+    function switchSubTab(table) {
+        currentTable = table;
+        document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.sub-tab[onclick="switchSubTab('${table}')"]`).classList.add('active');
+        loadTable();
+    }
+
+    async function loadTable() {
+        const response = await fetch(`/api/${currentTable}/data`);
+        const { data } = await response.json();
+        renderTable(data);
+    }
+
+    function renderTable(data) {
+        const container = document.getElementById('table-container');
+        container.innerHTML = '';
+        
+        if (!data.length) {
+            container.innerHTML = 'No data available';
+            return;
+        }
+
+        const table = document.createElement('table');
+        const headerRow = document.createElement('tr');
+        const columns = ['id', 'date', ...Object.keys(data[0]).filter(k => !['id', 'date'].includes(k))];
+        
+        columns.forEach(key => {
+            const th = document.createElement('th');
+            th.textContent = key;
+            if (!['id', 'date'].includes(key)) {
+                th.onclick = () => showDeleteColumnModal(key);
+            }
+            headerRow.appendChild(th);
+        });
+        table.appendChild(headerRow);
+
+        data.reverse().forEach(row => {
+            const tr = document.createElement('tr');
+            columns.forEach(key => {
+                const td = document.createElement('td');
+                if (key === 'id') {
+                    td.onclick = () => showDeleteRowModal(row.id);
+                } else if (key !== 'date') {
+                    td.onclick = () => startEditing(td);
+                }
+                td.textContent = row[key] || '';
+                td.setAttribute('data-column', key);
+                tr.appendChild(td);
+            });
+            table.appendChild(tr);
+        });
+        container.appendChild(table);
+    }
+
+    function startEditing(cell) {
+        if (activeInput) return;
+        
+        const initialValue = cell.textContent;
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.step = 'any';
+        input.value = initialValue;
+        
+        input.addEventListener('input', (e) => {
+            if (isNaN(e.target.value)) {
+                e.target.value = '';
+            }
+        });
+
+        cell.textContent = '';
+        cell.appendChild(input);
+        input.focus();
+        activeInput = input;
+
+        const save = async () => {
+            const value = input.value.trim();
+            await saveCell(cell, value);
+            activeInput = null;
+            cell.textContent = value !== '' ? parseFloat(value) : '';
+        };
+
+        input.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') await save();
+        });
+
+        input.addEventListener('blur', async () => {
+            await save();
+        });
+    }
+
+    async function saveCell(cell, value) {
+        const rowId = cell.parentElement.querySelector('td:first-child').textContent;
+        const column = cell.getAttribute('data-column');
+        
+        await fetch(`/api/${currentTable}/update-cell`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                row_id: rowId,
+                column: column,
+                value: value
+            })
+        });
+    }
+
+    async function addRow() {
+        await fetch(`/api/${currentTable}/add-row`, { method: 'POST' });
+        loadTable();
+    }
+
+    async function addColumn() {
+        const name = document.getElementById('new-column').value;
+        if (name) {
+            await fetch(`/api/${currentTable}/add-column`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            document.getElementById('new-column').value = '';
+            loadTable();
+        }
+    }
+
+    function showDeleteColumnModal(column) {
+        document.getElementById('modal-message').textContent = `Delete column "${column}"?`;
+        pendingAction = async () => {
+            await fetch(`/api/${currentTable}/delete-column`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: column })
+            });
+            loadTable();
+        };
+        document.getElementById('confirmation-modal').style.display = 'block';
+    }
+
+    function showDeleteRowModal(rowId) {
+        document.getElementById('modal-message').textContent = `Delete row #${rowId}?`;
+        pendingAction = async () => {
+            await fetch(`/api/${currentTable}/delete-row`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ row_id: rowId })
+            });
+            loadTable();
+        };
+        document.getElementById('confirmation-modal').style.display = 'block';
+    }
+
+    // Initialize
+    switchSubTab('body');
+</script>
+{% endblock %}

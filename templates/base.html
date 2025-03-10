@@ -1,22 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Fitness Tracker{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Fitness Tracker</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .main-tabs { margin-bottom: 20px; }
+        .main-tab { padding: 10px 30px; font-size: 18px; cursor: pointer; }
+        .sub-tabs { margin: 15px 0; }
+        .sub-tab { padding: 8px 20px; margin-right: 10px; cursor: pointer; }
+        .active { background-color: #e0e0e0; }
+        .section { display: none; }
+        .section.active { display: block; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        input[type="number"] { width: 100%; padding: 5px; border: 2px solid #4CAF50; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: white; margin: 15% auto; padding: 20px; width: 300px; }
+        .chart-container { margin: 20px 0; padding: 20px; background: white; }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Fitness Tracker</h1>
-    </header>
+    <div class="container">
+        <div class="main-tabs">
+            <a href="{{ url_for('data_page') }}" class="main-tab {% if active_tab == 'data' %}active{% endif %}">Data</a>
+            <a href="{{ url_for('statistics_page') }}" class="main-tab {% if active_tab == 'statistics' %}active{% endif %}">Statistics</a>
+        </div>
 
-    <main>
         {% block content %}{% endblock %}
-    </main>
 
-    <footer>
-        <p>&copy; 2025 Fitness Tracker</p>
-    </footer>
+        <!-- Confirmation Modal -->
+        <div id="confirmation-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <p id="modal-message"></p>
+                <div class="modal-buttons">
+                    <button onclick="confirmAction()">Confirm</button>
+                    <button onclick="closeModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let activeInput = null;
+        let pendingAction = null;
+
+        function closeModal() {
+            document.getElementById('confirmation-modal').style.display = 'none';
+            pendingAction = null;
+        }
+
+        function confirmAction() {
+            if (pendingAction) pendingAction();
+            closeModal();
+        }
+    </script>
+    
+    {% block scripts %}{% endblock %}
 </body>
 </html>
