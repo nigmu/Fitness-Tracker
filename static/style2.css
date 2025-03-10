@@ -1,0 +1,317 @@
+
+        /* Reset and base styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.4;
+        }
+        
+        .container {
+            width: 100%;
+            padding: 12px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        
+        /* Header and navigation */
+        .main-tabs {
+            display: flex;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+        }
+        
+        .main-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #555;
+            text-decoration: none;
+            background-color: #fff;
+            border: none;
+            transition: background-color 0.2s;
+        }
+        
+        .main-tab.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        /* Sub-navigation */
+        .sub-tabs {
+            display: flex;
+            margin: 12px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .sub-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 8px;
+            font-size: 14px;
+            background: white;
+            border: none;
+            color: #666;
+        }
+        
+        .sub-tab.active {
+            background-color: #81C784;
+            color: white;
+            font-weight: 500;
+        }
+        
+        /* Table styles */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 16px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        th, td {
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background-color: #f8f8f8;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Form elements */
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        /* Controls section */
+        #data-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .control-group input {
+            flex: 1;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 25% auto;
+            padding: 20px;
+            width: 85%;
+            max-width: 300px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        /* Chart containers */
+        .chart-container {
+            margin: 16px 0;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            height: 300px;
+        }
+        
+        /* Section visibility */
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+
+        
+    /* Modified container dimensions */
+    .container {
+        max-width: 800px;
+        padding: 20px;
+    }
+
+    /* Larger text sizes */
+    .main-tab {
+        font-size: 20px;
+        padding: 16px;
+    }
+
+    .sub-tab {
+        font-size: 18px;
+        padding: 14px;
+    }
+
+    th, td {
+        font-size: 16px;
+        padding: 16px;
+    }
+
+    /* Taller chart containers */
+    .chart-container {
+        height: 400px;
+        margin: 24px 0;
+    }
+
+    /* Larger input elements */
+    input[type="text"], input[type="number"] {
+        font-size: 16px;
+        padding: 14px;
+    }
+
+    button {
+        font-size: 16px;
+        padding: 14px 20px;
+    }
+
+    /* Adjusted modal positioning */
+    .modal-content {
+        margin: 15% auto;
+        max-width: 400px;
+        padding: 24px;
+    }
+
+    /* Larger table headers */
+    th {
+        font-size: 17px;
+        padding: 18px 16px;
+    }
+
+    /* More spacing between elements */
+    #data-controls {
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    /* Larger chart labels */
+    .chart-container h3 {
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+
+    .menu-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1001;
+        background: #4CAF50;
+        border: none;
+        padding: 15px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    
+    .menu-btn span {
+        display: block;
+        width: 25px;
+        height: 3px;
+        background: white;
+        margin: 4px 0;
+        transition: 0.3s;
+    }
+    
+    .nav-menu {
+        position: fixed;
+        top: 0;
+        left: -250px;
+        width: 250px;
+        height: 100%;
+        background: white;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        transition: 0.3s;
+        z-index: 1000;
+        padding-top: 80px;
+    }
+    
+    .nav-menu.active {
+        left: 0;
+    }
+    
+    .main-tab {
+        display: block;
+        padding: 20px;
+        font-size: 18px;
+        color: #555;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    
+    .main-tab.active {
+        background: #e8f5e9;
+        color: #4CAF50;
+    }

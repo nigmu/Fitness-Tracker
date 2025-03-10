@@ -4,17 +4,17 @@
 <!-- Data Section -->
 <div id="data-section" class="section active">
     <div class="sub-tabs">
-        <button class="sub-tab" onclick="switchSubTab('body')">Body</button>
         <button class="sub-tab" onclick="switchSubTab('exercise')">Exercise</button>
+        <button class="sub-tab" onclick="switchSubTab('body')">Body</button>
         <button class="sub-tab active" onclick="switchSubTab('food')">Food</button>
     </div>
     
     <div id="data-controls">
         <div class="control-group">
             <input type="text" id="new-column" placeholder="New column name">
-            <button onclick="addColumn()">Add Column</button>
+            <button onclick="addColumn()">Add</button>
         </div>
-        <button onclick="addRow()">Add New Row</button>
+        <button onclick="addRow()">Add New Entry</button>
     </div>
     
     <div id="table-container"></div>
@@ -23,7 +23,7 @@
 
 {% block scripts %}
 <script>
-    let currentTable = 'body';
+    let currentTable = 'exercise';
 
     function switchSubTab(table) {
         currentTable = table;
@@ -33,17 +33,23 @@
     }
 
     async function loadTable() {
-        const response = await fetch(`/api/${currentTable}/data`);
-        const { data } = await response.json();
-        renderTable(data);
+        try {
+            const response = await fetch(`/api/${currentTable}/data`);
+            const { data } = await response.json();
+            renderTable(data);
+        } catch (error) {
+            console.error("Error loading data:", error);
+            document.getElementById('table-container').innerHTML = 
+                '<div style="padding: 20px; text-align: center; color: #d32f2f;">Failed to load data. Please try again.</div>';
+        }
     }
 
     function renderTable(data) {
         const container = document.getElementById('table-container');
         container.innerHTML = '';
         
-        if (!data.length) {
-            container.innerHTML = 'No data available';
+        if (!data || data.length === 0) {
+            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No data available. Add a new entry to get started.</div>';
             return;
         }
 
@@ -56,6 +62,8 @@
             th.textContent = key;
             if (!['id', 'date'].includes(key)) {
                 th.onclick = () => showDeleteColumnModal(key);
+                th.style.cursor = 'pointer';
+                th.title = 'Tap to delete column';
             }
             headerRow.appendChild(th);
         });
@@ -67,8 +75,11 @@
                 const td = document.createElement('td');
                 if (key === 'id') {
                     td.onclick = () => showDeleteRowModal(row.id);
+                    td.style.cursor = 'pointer';
+                    td.title = 'Tap to delete row';
                 } else if (key !== 'date') {
                     td.onclick = () => startEditing(td);
+                    td.style.cursor = 'pointer';
                 }
                 td.textContent = row[key] || '';
                 td.setAttribute('data-column', key);
@@ -87,6 +98,11 @@
         input.type = 'number';
         input.step = 'any';
         input.value = initialValue;
+        input.style.width = '100%';
+        input.style.padding = '8px';
+        input.style.border = '2px solid #4CAF50';
+        input.style.borderRadius = '4px';
+        input.style.fontSize = '14px';
         
         input.addEventListener('input', (e) => {
             if (isNaN(e.target.value)) {
@@ -101,9 +117,16 @@
 
         const save = async () => {
             const value = input.value.trim();
-            await saveCell(cell, value);
-            activeInput = null;
-            cell.textContent = value !== '' ? parseFloat(value) : '';
+            try {
+                await saveCell(cell, value);
+                activeInput = null;
+                cell.textContent = value !== '' ? parseFloat(value) : '';
+            } catch (err) {
+                console.error("Error saving cell:", err);
+                // Restore original value on error
+                cell.textContent = initialValue;
+                activeInput = null;
+            }
         };
 
         input.addEventListener('keydown', async (e) => {
@@ -131,50 +154,66 @@
     }
 
     async function addRow() {
-        await fetch(`/api/${currentTable}/add-row`, { method: 'POST' });
-        loadTable();
+        try {
+            await fetch(`/api/${currentTable}/add-row`, { method: 'POST' });
+            loadTable();
+        } catch (err) {
+            console.error("Error adding row:", err);
+        }
     }
 
     async function addColumn() {
-        const name = document.getElementById('new-column').value;
+        const name = document.getElementById('new-column').value.trim();
         if (name) {
-            await fetch(`/api/${currentTable}/add-column`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name })
-            });
-            document.getElementById('new-column').value = '';
-            loadTable();
+            try {
+                await fetch(`/api/${currentTable}/add-column`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                document.getElementById('new-column').value = '';
+                loadTable();
+            } catch (err) {
+                console.error("Error adding column:", err);
+            }
         }
     }
 
     function showDeleteColumnModal(column) {
         document.getElementById('modal-message').textContent = `Delete column "${column}"?`;
         pendingAction = async () => {
-            await fetch(`/api/${currentTable}/delete-column`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: column })
-            });
-            loadTable();
+            try {
+                await fetch(`/api/${currentTable}/delete-column`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: column })
+                });
+                loadTable();
+            } catch (err) {
+                console.error("Error deleting column:", err);
+            }
         };
         document.getElementById('confirmation-modal').style.display = 'block';
     }
 
     function showDeleteRowModal(rowId) {
-        document.getElementById('modal-message').textContent = `Delete row #${rowId}?`;
+        document.getElementById('modal-message').textContent = `Delete entry #${rowId}?`;
         pendingAction = async () => {
-            await fetch(`/api/${currentTable}/delete-row`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ row_id: rowId })
-            });
-            loadTable();
+            try {
+                await fetch(`/api/${currentTable}/delete-row`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ row_id: rowId })
+                });
+                loadTable();
+            } catch (err) {
+                console.error("Error deleting row:", err);
+            }
         };
         document.getElementById('confirmation-modal').style.display = 'block';
     }
 
-    // Initialize
-    switchSubTab('body');
+    // Initialize with Exercise initially
+    switchSubTab('exercise');
 </script>
 {% endblock %}
